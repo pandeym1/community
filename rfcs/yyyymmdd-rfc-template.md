@@ -1,44 +1,37 @@
-# Title of RFC
+# Weather Image Fetch Protocol
 
-| Status        | (Proposed / Accepted / Implemented / Obsolete)       |
+| Status        | (Proposed)                                           |
 :-------------- |:---------------------------------------------------- |
-| **RFC #**     | [NNN](https://github.com/tensorflow/community/pull/NNN) (update when you have community PR #)|
-| **Author(s)** | My Name (me@example.org), AN Other (you@example.org) |
-| **Sponsor**   | A N Expert (whomever@tensorflow.org)                 |
-| **Updated**   | YYYY-MM-DD                                           |
-| **Obsoletes** | TF-RFC it replaces, else remove this header          |
+| **RFC #**     | ---------------------------------------------------- |
+| **Author(s)** | Manas Pandey                                         |
+| **UFID**      | 39151151                                             |
+| **Updated**   | 2023-04-07                                           |
 
 ## Objective
 
-What are we doing and why? What problem will this solve? What are the goals and
-non-goals? This is your executive summary; keep it short, elaborate below.
+The goal of Weather Image Fetch Protocol (WIFP) is to allow users to pull an image from a server that displays information about the weather. This image can be modified based on client input to access information for different regions, change measurement systems, and change image icons. 
 
 ## Motivation
 
-Why this is a valuable problem to solve? What background information is needed
-to show how this design addresses the problem?
+While there are many APIs in place to fetch weather data, it is still a challenge to parse, format, and display the information in a meaningful way. Programmers may want to modify weather information by themselves to have a customizable application, but in the event where weather information makes up a small portion of an application it may seem like a waste of time to invest in a custom display for it. 
 
-Which users are affected by the problem? Why is it a problem? What data supports
-this? What related work exists?
+WIFP is an application layer protocol that solves this problem by allowing users to connect to a server and easily generate a boiler plate display for the weather. 
 
 ## User Benefit
 
-How will users (or other contributors) benefit from this work? What would be the
-headline in the release notes or blog post?
+The users will benefit by not having to reinvent the wheel in the event they need a physical display of weather in their application. With updates, the high degree of customizability that the protocol offers to users will make it easier to have a boiler plate display early in development that can be swapped out if a more detailed display is needed.
 
 ## Design Proposal
 
-This is the meat of the document, where you explain your proposal. If you have
-multiple alternatives, be sure to use sub-sections for better separation of the
-idea, and list pros/cons to each approach. If there are alternatives that you
-have eliminated, you should also list those here, and explain why you believe
-your chosen approach is superior.
+The server is responsible for fetching information about weather and interpreting the fetched data (compute time, date, temperature measurement). When a client interacts with the server they can specify what region they want to fetch the weather image of. This step lets the server configure the url it will use to scrape information from the internet using the OpenWeater API. After this information is fetched and the user request for an image to be generated, the server starts processing the information it had retrieved. The processing step consists of converting the temperature into the correct format (Celsius or Fahrenheit) that is decided by the client. The server also processes the time it receives from the internet and generates the date which consists of month, day, year, time zone, and time in UTC. This generated date is used to decide whether it is day or night and change the icons for the image it is about to generate accordingly. In the final step of processing the server creates a 350x350 pixel image and transfers it to the client via a byte stream.
 
-Make sure you’ve thought through and addressed the following sections. If a section is not relevant to your specific proposal, please explain why, e.g. your RFC addresses a convention or process, not an API.
+As stated before the client is just in charge of issuing commands and accepting the server response. When the server generates an image the client saves it by converting the byte stream to an image on its end. The client should be able to make some modifications to the image based on its preferences. 
+
+The connection between the client and the server is possible by the use of a TCP socket. The purpose of this protocol being client server based as opposed to an API is so many clients can connect at once (will come in later update) and have the server handle the heavy computing for them. There is also a set of instructions that this protocol follows on the server side that make it different from an API.
+
+### Implementation
 
 
-### Alternatives Considered
-* Make sure to discuss the relative merits of alternatives to your proposal.
 
 ### Performance Implications
 * Do you expect any (speed / memory)? How will you confirm?
